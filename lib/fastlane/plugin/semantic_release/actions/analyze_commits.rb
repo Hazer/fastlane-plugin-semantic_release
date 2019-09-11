@@ -16,6 +16,8 @@ module Fastlane
 
     class AnalyzeCommitsAction < Action
       def self.get_last_tag(params)
+        UI.message "get last tag match: #{params[:match]}"
+
         # Try to find the tag
         command = "git describe --tags --match=#{params[:match]}"
         Actions.sh(command, log: false)
@@ -25,6 +27,8 @@ module Fastlane
       end
 
       def self.get_last_tag_hash(params)
+        UI.message "get last tag hash tag_name: #{params[:tag_name]}"
+
         command = "git rev-list -n 1 refs/tags/#{params[:tag_name]}"
         Actions.sh(command, log: false).chomp
       end
@@ -43,6 +47,8 @@ module Fastlane
 
         tag = get_last_tag(match: params[:match])
 
+        UI.message "found tag name: #{params[:match]}"
+
         if tag.empty?
           UI.message("First commit of the branch is taken as a begining of next release")
           # If there is no tag found we taking the first commit of current branch
@@ -51,13 +57,21 @@ module Fastlane
           # Tag's format is v2.3.4-5-g7685948
           # See git describe man page for more info
           tag_name = tag.split('-')[0].strip
+          
+          UI.message "split tag name: #{tag_name}"
+
           parsed_version = tag_name.match(params[:tag_version_match])
+
+          UI.message "parsed version: #{parsed_version}"
 
           if parsed_version.nil?
             UI.user_error!("Error while parsing version from tag #{tag_name} by using tag_version_match - #{params[:tag_version_match]}. Please check if the tag contains version as you expect and if you are using single brackets for tag_version_match parameter.")
           end
 
           version = parsed_version[0]
+          
+          UI.message "version: #{version}"
+
           # Get a hash of last version tag
           hash = get_last_tag_hash(tag_name: tag_name)
 
